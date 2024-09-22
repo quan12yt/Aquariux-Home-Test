@@ -10,15 +10,3 @@ spring:
       path: /h2
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
-
-#spring:
-#  h2:
-#    console:
-#      enabled: true
-#
-#  datasource:
-#    url: jdbc:h2:mem:TradingCrypto
-#    driver-class-name: org.h2.Driver
-#    username: sa
-#    password: password
-#    platform: org.hibernate.dialect.H2Dialect
