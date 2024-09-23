@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.common.TradingMethod;
 import com.example.demo.dto.TradeRequest;
+import com.example.demo.dto.UserCryptoBalanceResponse;
 import com.example.demo.entity.*;
 import com.example.demo.exception.ApplicationException;
 import com.example.demo.repository.CurrencyRepository;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,29 +41,33 @@ public class TradeServiceImpl implements TradeService{
         BigDecimal bestPrice = TradingMethod.BUY.equals(request.getMethod()) ? currency.getBestBuyPrice() :
                 currency.getBestSellPrice();
         BigDecimal amount = request.getQuantity().multiply(bestPrice);
-        BigDecimal currentBalance = getUserBalance(request.getUserId());
-        BigDecimal currentCryptoBalance = getUserCryptoBalance(request.getUserId(),
-                request.getSymbol()).getTotalQuantity();
+
+        TradeUser user = getUserById(request.getUserId());
+        HoldingAssets assets = getUserAssetById(request.getUserId(), request.getSymbol());
+
         boolean shouldProceed;
         BigDecimal remainBalance;
-        BigDecimal remainCryptoBalance;
+        BigDecimal remainCryptoQuantity;
+
         if (TradingMethod.BUY.equals(request.getMethod())) {
-            shouldProceed = getUserBalance(request.getUserId()).compareTo(amount) > 0;
-            remainBalance = shouldProceed ? currentBalance.subtract(amount) : currentBalance;
-            remainCryptoBalance = shouldProceed ? currentCryptoBalance.add(request.getQuantity())
-                    : currentCryptoBalance;
+            shouldProceed = user.getBalance().compareTo(amount) > 0;
+            remainBalance = shouldProceed ? user.getBalance().subtract(amount) : user.getBalance();
+            remainCryptoQuantity = shouldProceed ? assets.getTotalQuantity().add(request.getQuantity())
+                    : assets.getTotalQuantity();
         } else {
-            shouldProceed = currentCryptoBalance.compareTo(request.getQuantity()) > 0;
-            remainBalance = shouldProceed ? currentBalance.add(amount) : currentBalance;
-            remainCryptoBalance = shouldProceed ? currentCryptoBalance.subtract(request.getQuantity())
-                    : currentCryptoBalance;
+            shouldProceed = assets.getTotalQuantity().compareTo(request.getQuantity()) > 0;
+            remainBalance = shouldProceed ? user.getBalance().add(amount) : user.getBalance();
+            remainCryptoQuantity = shouldProceed ? assets.getTotalQuantity().subtract(request.getQuantity())
+                    : assets.getTotalQuantity();
         }
 
         if (shouldProceed) {
+            user.setBalance(remainBalance);
+            assets.setTotalQuantity(remainCryptoQuantity);
             TradeHistory tradeHistory = TradeHistory.from(request, bestPrice, amount);
             historyRepository.save(tradeHistory);
-            userRepository.updateUserBalance(request.getUserId(), remainBalance);
-
+            userRepository.save(user);
+            assetsRepository.save(assets);
             return;
         }
         throw new ApplicationException(HttpStatus.BAD_REQUEST, "The remaining wallet balance is not enough");
@@ -69,23 +75,30 @@ public class TradeServiceImpl implements TradeService{
     }
 
     @Override
-    public BigDecimal retrieveCurrentBalance() {
-        return null;
+    public UserCryptoBalanceResponse retrieveCurrentBalance(int id) throws ApplicationException {
+        TradeUser user = getUserById(id);
+        List<UserCryptoBalanceResponse.CryptoBalance> assets = assetsRepository.findAllByUserId(id).stream()
+                .map(UserCryptoBalanceResponse.CryptoBalance::from)
+                .collect(Collectors.toList());
+
+        return UserCryptoBalanceResponse.builder()
+                .balance(user.getBalance())
+                .userName(user.getName())
+                .holdingCrypto(assets).build();
     }
 
     @Override
-    public List<TradeHistory> retrieveHistory() {
-        return null;
+    public List<TradeHistory> retrieveHistory(int id) {
+        return historyRepository.findAllByUserIdOrderByCreatedAtAsc(id);
     }
 
-    private BigDecimal getUserBalance(int id) throws ApplicationException {
-        return userRepository.findById(id).map(TradeUser::getBalance).orElseThrow(() -> new ApplicationException(HttpStatus.BAD_REQUEST,
+    private TradeUser getUserById(int id) throws ApplicationException {
+        return userRepository.findById(id).orElseThrow(() -> new ApplicationException(HttpStatus.BAD_REQUEST,
                 "Invalid userId"));
     }
 
-    private HoldingAssets getUserCryptoBalance(int userId, String symbol) throws ApplicationException {
+    private HoldingAssets getUserAssetById(int userId, String symbol) {
         return assetsRepository.findById(new HoldingAssetsId(userId, symbol))
-                .orElseThrow(() -> new ApplicationException(HttpStatus.BAD_REQUEST,
-                        "Invalid userId or symbol"));
+                .orElse(new HoldingAssets(userId, symbol, new BigDecimal(0)));
     }
 }

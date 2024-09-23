@@ -1,7 +1,9 @@
 package com.example.demo.entity;
 
-import com.example.demo.dto.BinanceFetchingDTO;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,11 +16,14 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "HoldingAssets")
+@IdClass(HoldingAssetsId.class)
 public class HoldingAssets {
 
-    @Column
-    @EmbeddedId
-    private HoldingAssetsId id;
+    @Id
+    private int userId;
+
+    @Id
+    private String symbol;
 
     @Column
     private BigDecimal totalQuantity;

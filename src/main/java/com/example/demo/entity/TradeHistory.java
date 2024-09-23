@@ -50,6 +50,8 @@ public class TradeHistory {
                 .symbol(request.getSymbol())
                 .createdAt(LocalDateTime.now())
                 .price(price)
+                .amount(amount)
+                .quantity(request.getQuantity())
                 .userId(request.getUserId())
                 .build();
     }
