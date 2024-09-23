@@ -39,6 +39,7 @@ public class TradeServiceImpl implements TradeService{
 
     @Override
     public void trade(TradeRequest request) throws ApplicationException {
+        log.info("#trade --- begin trade, request: {}", request);
         Currency currency = getCurrencyDetails(request.getSymbol());
         BigDecimal bestPrice = TradingMethod.BUY.equals(request.getMethod()) ? currency.getBestBuyPrice() :
                 currency.getBestSellPrice();
@@ -82,6 +83,7 @@ public class TradeServiceImpl implements TradeService{
 
     @Override
     public UserCryptoBalanceResponse retrieveCurrentBalance(int id) throws ApplicationException {
+        log.info("#retrieveCurrentBalance retrieve current wallet/crypto balance for user: {}", id);
         TradeUser user = getUserById(id);
         return UserCryptoBalanceResponse.builder()
                 .balance(user.getBalance())
@@ -91,6 +93,7 @@ public class TradeServiceImpl implements TradeService{
 
     @Override
     public List<Transaction> retrieveHistory(int id) {
+        log.info("#retrieveHistory retrieve transactions for user: {}", id);
         return transactionRepository.findAllByUserIdOrderByCreatedAtAsc(id);
     }
 
