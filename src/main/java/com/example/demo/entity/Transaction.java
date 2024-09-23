@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "TradingHistory")
-public class TradeHistory {
+@Entity(name = "Transaction")
+public class Transaction {
 
     @Id
     @Column
@@ -44,8 +44,8 @@ public class TradeHistory {
     @Column
     private LocalDateTime createdAt;
 
-    public static TradeHistory from(TradeRequest request, BigDecimal price, BigDecimal amount) {
-        return TradeHistory.builder()
+    public static Transaction from(TradeRequest request, BigDecimal price, BigDecimal amount) {
+        return Transaction.builder()
                 .method(request.getMethod())
                 .symbol(request.getSymbol())
                 .createdAt(LocalDateTime.now())

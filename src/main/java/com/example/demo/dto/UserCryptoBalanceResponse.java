@@ -1,6 +1,6 @@
 package com.example.demo.dto;
 
-import com.example.demo.entity.HoldingAssets;
+import com.example.demo.entity.CryptoAssets;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,19 +19,6 @@ public class UserCryptoBalanceResponse {
 
     private BigDecimal balance;
 
-    private List<CryptoBalance> holdingCrypto;
-
-    @Data
-    @AllArgsConstructor
-    public static class CryptoBalance{
-
-        private String symbol;
-
-        private BigDecimal quantity;
-
-        public static CryptoBalance from(HoldingAssets assets){
-            return new CryptoBalance(assets.getSymbol(), assets.getTotalQuantity());
-        }
-    }
+    private List<CryptoAssets> holdingCrypto;
 
 }

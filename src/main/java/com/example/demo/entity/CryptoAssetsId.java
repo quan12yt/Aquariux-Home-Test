@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Embeddable
 @NoArgsConstructor
 @AllArgsConstructor
-public class HoldingAssetsId implements Serializable {
+public class CryptoAssetsId implements Serializable {
 
     private int userId;
 

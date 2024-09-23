@@ -2,9 +2,9 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.TradeRequest;
 import com.example.demo.dto.UserCryptoBalanceResponse;
-import com.example.demo.entity.TradeHistory;
-import com.example.demo.exception.ApplicationException;
 import com.example.demo.entity.Currency;
+import com.example.demo.entity.Transaction;
+import com.example.demo.exception.ApplicationException;
 import com.example.demo.service.TradeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class TradeController {
 
     @GetMapping("/{symbol}")
     public Currency getBestPrice(@PathVariable String symbol) throws ApplicationException {
-        return service.getBestPrice(symbol);
+        return service.getCurrencyDetails(symbol);
     }
 
     @PostMapping
@@ -34,8 +34,8 @@ public class TradeController {
         return service.retrieveCurrentBalance(id);
     }
 
-    @GetMapping("/history/{id}")
-    public List<TradeHistory> getTradeHistories(@PathVariable int id) throws ApplicationException {
+    @GetMapping("/transactions/{id}")
+    public List<Transaction> getTradeHistories(@PathVariable int id) {
         return service.retrieveHistory(id);
     }
 
